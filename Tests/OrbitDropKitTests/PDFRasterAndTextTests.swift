@@ -108,4 +108,38 @@ final class PDFRasterAndTextTests: XCTestCase {
         let content = try String(contentsOf: textURL, encoding: .utf8)
         XCTAssertTrue(content.contains("OrbitDrop PDF Text Extraction Test"))
     }
+
+    func testScannedPDFUsesLocalOCRForMarkdown() throws {
+        let imageSize = CGSize(width: 800, height: 300)
+        let image = NSImage(size: imageSize)
+        image.lockFocus()
+        NSColor.white.setFill()
+        NSRect(origin: .zero, size: imageSize).fill()
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 46, weight: .bold),
+            .foregroundColor: NSColor.black
+        ]
+        ("ORBITDROP OCR TESTE" as NSString).draw(at: CGPoint(x: 60, y: 125), withAttributes: attrs)
+        image.unlockFocus()
+
+        guard let scannedPage = PDFPage(image: image) else {
+            throw XCTSkip("Falha ao criar página escaneada")
+        }
+        let scannedDoc = PDFDocument()
+        scannedDoc.insert(scannedPage, at: 0)
+        let scannedURL = tempDirectory.appendingPathComponent("scanned.pdf")
+        XCTAssertTrue(scannedDoc.write(to: scannedURL))
+
+        let mdURL = try PDFTextExtractor.extractText(
+            sourceURL: scannedURL,
+            format: .markdown,
+            directory: tempDirectory,
+            useOCRFallback: true
+        )
+
+        let content = try String(contentsOf: mdURL, encoding: .utf8)
+        XCTAssertTrue(content.contains("## Página 1"))
+        XCTAssertTrue(content.uppercased().contains("ORBITDROP"))
+        XCTAssertTrue(content.uppercased().contains("OCR"))
+    }
 }

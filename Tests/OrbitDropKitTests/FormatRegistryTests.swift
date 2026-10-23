@@ -80,4 +80,14 @@ final class FormatRegistryTests: XCTestCase {
         let imageTargets = targets.filter { ["jpg", "png", "tiff", "bmp"].contains($0.targetExtension) }
         XCTAssertTrue(imageTargets.isEmpty, "Pastas não podem ser tratadas como arquivos de imagem para conversão")
     }
+
+    func testPDFAvailableTargetsIncludeMarkdown() {
+        let pdfFile = FileDescriptor(
+            url: URL(fileURLWithPath: "/tmp/document.pdf"),
+            contentType: .pdf
+        )
+
+        let targets = FormatRegistry.defaultRegistry().availableTargets(for: [pdfFile])
+        XCTAssertTrue(targets.contains(where: { $0.targetExtension == "md" && $0.title == "Markdown" }))
+    }
 }

@@ -66,7 +66,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             let items: [RadialItem]
             switch mode {
             case .convert:
-                items = self.defaultConvertItems
+                // Resolver formatos diretamente do pasteboard da sessão de drag do Finder.
+                let draggedURLs = DragPayloadProbe.currentFileURLs()
+                if draggedURLs.isEmpty {
+                    items = self.defaultConvertItems
+                } else {
+                    let descriptors = draggedURLs.map { FileDescriptor(url: $0) }
+                    let contextual = self.formatRegistry.availableTargets(for: descriptors)
+                    items = contextual.isEmpty ? self.defaultConvertItems : contextual
+                }
             case .tools:
                 items = [
                     RadialItem(id: "tool.compress", title: "Comprimir", iconName: "arrow.down.circle", targetExtension: "jpg"),
