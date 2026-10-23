@@ -8,6 +8,8 @@
 [![macOS](https://img.shields.io/badge/macOS-13.0%2B-black?style=for-the-badge&logo=apple&logoColor=white)](https://apple.com)
 [![Swift](https://img.shields.io/badge/Swift-6.0-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://swift.org)
 [![Architecture](https://img.shields.io/badge/Architecture-Apple%20Silicon%20(arm64)-007ACC?style=for-the-badge)](https://apple.com)
+[![CI](https://github.com/ChacalDeOZ/OrbitDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/ChacalDeOZ/OrbitDrop/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/Tests-102%20passing-brightgreen?style=for-the-badge)](https://github.com/ChacalDeOZ/OrbitDrop)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/ChacalDeOZ/OrbitDrop?style=for-the-badge&color=gold)](https://github.com/ChacalDeOZ/OrbitDrop/stargazers)
 
@@ -40,8 +42,8 @@ Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda rad
 
 | Tecla | Modo | O que faz |
 | :---: | :---: | :--- |
-| <kbd>⇧ Shift</kbd> | **Conversão** | Converte dinamicamente formatos comuns (PNG, JPEG, HEIC, TIFF, BMP, PDF, MP4, MOV, WAV, M4A, ZIP, etc.). |
-| <kbd>⌘ Command</kbd> | **Ferramentas** | Acesso a 24 utilitários contextuais de edição, redação de privacidade, cortes, normalização e metadados. |
+| <kbd>⇧ Shift</kbd> | **Conversão** | Converte dinamicamente formatos comuns (PNG, JPEG, HEIC, TIFF, BMP, WebP, AVIF, PDF, MP4, MOV, WAV, M4A, ZIP, TAR, TAR.GZ, etc.). |
+| <kbd>⌘ Command</kbd> | **Ferramentas** | Acesso contextual a 24+ utilitários de edição, OCR local, redação de privacidade, cortes, normalização e metadados com paginação inteligente. |
 | <kbd>⌃ Control</kbd> | **Ações Rápidas** | Dispara ações nativas instantâneas: AirDrop, Prateleira Flutuante, Copiar no Finder, Mover, Copiar Caminho e Abrir Terminal. |
 
 ---
@@ -83,16 +85,17 @@ Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda rad
 </details>
 
 <details open>
-<summary><b>📄 PDF, Legendas & Compactados</b></summary>
+<summary><b>📄 PDF, OCR, Legendas & Compactados</b></summary>
 <br/>
 
 - **T21 Juntar PDFs:** Mescla de múltiplos documentos preservando dimensões e orientação das páginas.
 - **T22 Organizar Páginas:** Rotação (±90°), reordenação, exclusão e duplicação com cópia profunda.
 - **T23 Dividir PDF:** Separação página por página (`-page-001.pdf`) com resolução de conflitos.
 - **Render 300 DPI:** Exportação de páginas de PDF para imagens nítidas prontas para impressão.
-- **Extração de Texto e Conversor Markdown:** Conversão de PDF, HTML, RTF, JSON, código fonte e texto para Markdown (`.md`) estruturado.
+- **OCR Local com Apple Vision:** Reconhecimento de texto óptico offline de alta precisão para imagens e PDFs escaneados diretamente para Markdown estruturado.
+- **Extração de Texto e Conversor Markdown:** Conversão de PDF, HTML, RTF, JSON, código fonte e texto para Markdown (`.md`) formatado.
 - **Conversor de Legendas:** Conversão bidirecional SRT ↔ VTT com ajuste de timestamps.
-- **Compactação Segura (ZIP):** Criação e extração via `/usr/bin/ditto` nativo com proteção estrita contra path traversal (`../`) e zip bombs.
+- **Compactação Segura (ZIP / TAR / TAR.GZ):** Criação e extração via utilitários nativos (`/usr/bin/ditto` e `/usr/bin/tar`) com proteção estrita contra path traversal (`../`) e zip bombs.
 </details>
 
 <details open>
@@ -109,6 +112,15 @@ Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda rad
 
 ---
 
+## 🎛️ Experiência de Uso Contextual & Interativa
+
+- **Roda Radial Paginada Contextual:** Abertura inteligente filtrando apenas ferramentas compatíveis com os arquivos arrastados (`ToolRegistry`). Máximo de 8 setores por tela com navegação contínua ("◀ Anterior" / "▶ Mais") sem sobrecarga cognitiva.
+- **HUD Interativo de Parâmetros:** Ajuste de valores antes da execução via controles deslizantes e seletores (velocidade de vídeo, teto de compressão em KB, recorte de foto, rotação de páginas).
+- **HUD Flutuante de Progresso:** Feedback visual em tempo real com barra de progresso, percentual, nome do arquivo em processamento e botão cooperativo de cancelamento para lotes pesados.
+- **CI Automatizado via GitHub Actions:** Suíte completa de testes e validação de build a cada push e pull request.
+
+---
+
 ## 🚀 Como Compilar e Rodar
 
 ### Pré-requisitos
@@ -122,7 +134,7 @@ git clone https://github.com/ChacalDeOZ/OrbitDrop.git
 cd OrbitDrop
 ```
 
-### 2. Rodar a Suíte de Testes (90 testes unitários e de integração)
+### 2. Rodar a Suíte de Testes (102 testes unitários e de integração)
 ```bash
 swift test
 ```
@@ -143,7 +155,7 @@ open build/OrbitDrop.app
 ## ♿ Acessibilidade e Teclado
 
 O OrbitDrop foi projetado para ser 100% acessível:
-- **Navegação por Teclado:** Use as setas <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> para navegar entre os setores do menu radial, <kbd>Enter</kbd> para selecionar e <kbd>Esc</kbd> para fechar.
+- **Navegação por Teclado:** Use as setas <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> ou <kbd>,</kbd> / <kbd>.</kbd> para navegar entre os setores da roda radial e páginas, <kbd>Enter</kbd> para selecionar e <kbd>Esc</kbd> para fechar.
 - **VoiceOver:** Compatibilidade integral com elementos de botão anunciados pelo VoiceOver e acionamento via <kbd>VO</kbd> + <kbd>Space</kbd>.
 - **Reduce Motion:** Respeito automático às preferências de redução de movimento do sistema.
 
@@ -153,21 +165,22 @@ O OrbitDrop foi projetado para ser 100% acessível:
 
 ```text
 OrbitDrop/
+├── .github/workflows/          # Automação CI/CD (GitHub Actions para build e testes)
 ├── Sources/
 │   ├── OrbitDropApp/           # Processo residente na barra de menus (AppDelegate, main)
 │   └── OrbitDropKit/           # Framework central desacoplado e testável
 │       ├── Models/             # Modelos imutáveis Sendable (FileDescriptor, RadialItem)
 │       ├── Radial/             # Geometria trigonométrica pura e hit-testing
-│       ├── Drag/               # Monitores globais de teclas e intenção de arrasto
-│       ├── FormatRegistry/     # Grafo declarativo de formatos e interseção multi-arquivo
+│       ├── Drag/               # Monitores de teclas, detecção de arrasto e DragPayloadProbe
+│       ├── FormatRegistry/     # Grafo declarativo de formatos e ToolRegistry contextual
 │       ├── Jobs/               # Ator Swift 6 para processamento concorrente em background
-│       ├── Engines/            # Motores de Imagem, Áudio, Vídeo, PDF e Compactados
+│       ├── Engines/            # Motores de Imagem, Áudio, Vídeo, PDF, Markdown e Compactados
 │       ├── Actions/            # Despachantes das 6 ações de arquivo de sistema
-│       ├── Vision/             # Detecção local de rostos e leitura de QR Codes
+│       ├── Vision/             # Detecção de rostos, leitor de QR Code e OCRProcessor offline
 │       ├── Onboarding/         # Fluxo nativo de boas-vindas em 5 passos
 │       ├── Settings/           # Preferências persistidas thread-safe
-│       └── UI/                 # Menus radiais, Float Shelf e Drop Zone flutuante
-└── Tests/                      # 90 testes automatizados cobrindo todos os fluxos
+│       └── UI/                 # Menus radiais paginados, Float Shelf, HUD de Parâmetros e HUD de Progresso
+└── Tests/                      # 102 testes automatizados cobrindo todos os fluxos
 ```
 
 ---
