@@ -50,8 +50,8 @@ final class FormatRegistryTests: XCTestCase {
         let registry = FormatRegistry.defaultRegistry()
         let commonTargets = registry.availableTargets(for: [pngFile, textFile])
 
-        let nonZip = commonTargets.filter { $0.targetExtension != "zip" }
-        XCTAssertTrue(nonZip.isEmpty, "Arquivos sem formato comum não devem ter rotas de mídia em comum")
+        let nonArchive = commonTargets.filter { $0.targetExtension != "zip" && $0.targetExtension != "tar.gz" }
+        XCTAssertTrue(nonArchive.isEmpty, "Arquivos sem formato comum não devem ter rotas de mídia em comum")
     }
 
     func testGenericDataOrUnknownExtensionDoesNotMatchImages() {

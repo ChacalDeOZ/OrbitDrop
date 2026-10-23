@@ -59,6 +59,8 @@ public enum ImagePipeline: Sendable {
             targetType = .bmp
         case "heic":
             targetType = .heic
+        case "avif":
+            targetType = UTType(filenameExtension: "avif") ?? .jpeg
         default:
             if let resolved = UTType(filenameExtension: cleanExt) {
                 targetType = resolved

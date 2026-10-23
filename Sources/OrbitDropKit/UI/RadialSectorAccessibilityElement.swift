@@ -1,14 +1,20 @@
 import Foundation
 import AppKit
 
-@MainActor
-public final class RadialSectorAccessibilityElement: NSAccessibilityElement {
+public final class RadialSectorAccessibilityElement: NSAccessibilityElement, @unchecked Sendable {
     public var item: RadialItem?
-    public var onPress: ((RadialItem) -> Void)?
+    public weak var actionTarget: AnyObject?
+    public var actionSelector: Selector?
 
     public override func accessibilityPerformPress() -> Bool {
-        guard let it = item else { return false }
-        onPress?(it)
+        guard let target = actionTarget, let selector = actionSelector else { return false }
+        if Thread.isMainThread {
+            _ = target.perform(selector, with: item)
+        } else {
+            DispatchQueue.main.sync {
+                _ = target.perform(selector, with: self.item)
+            }
+        }
         return true
     }
 }

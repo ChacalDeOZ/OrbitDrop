@@ -8,15 +8,41 @@ public final class RadialWheelView: NSView {
     }
     public var items: [RadialItem] = [] {
         didSet {
-            if let active = activeSectorIndex, active >= items.count {
-                activeSectorIndex = items.isEmpty ? nil : items.count - 1
-            }
+            currentPageIndex = 0
+            activeSectorIndex = nil
             needsDisplay = true
         }
     }
     public var onDropConfirmed: ((RadialItem, [URL]) -> Void)?
     public var onSectorSelected: ((RadialItem) -> Void)?
     public var onDismissRequested: (() -> Void)?
+
+    public private(set) var currentPageIndex: Int = 0 {
+        didSet {
+            activeSectorIndex = nil
+            needsDisplay = true
+        }
+    }
+
+    /// Retorna os itens paginados da página atual (máximo 8 setores para visual limpo).
+    public var displayedItems: [RadialItem] {
+        guard items.count > 8 else { return items }
+        let pageSize = 7
+        let totalPages = max(1, Int(ceil(Double(items.count) / Double(pageSize))))
+        let safePage = currentPageIndex % totalPages
+        let start = safePage * pageSize
+        let end = min(start + pageSize, items.count)
+        var slice = Array(items[start..<end])
+        slice.append(
+            RadialItem(
+                id: "page.next",
+                title: "Mais (\(safePage + 1)/\(totalPages))",
+                iconName: "ellipsis.circle",
+                targetExtension: ""
+            )
+        )
+        return slice
+    }
 
     private var trackingArea: NSTrackingArea?
 
@@ -65,7 +91,8 @@ public final class RadialWheelView: NSView {
 
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let count = max(items.count, 1)
+        let activeItems = displayedItems
+        let count = max(activeItems.count, 1)
 
         // 1. Fundo Circular Exterior Elegante com Glassmorphism
         context.saveGState()
@@ -104,7 +131,7 @@ public final class RadialWheelView: NSView {
         }
 
         // 3. Desenhar Setores Ativos e Ícones
-        for (index, item) in items.enumerated() {
+        for (index, item) in activeItems.enumerated() {
             let isActive = (index == activeSectorIndex)
             drawSector(context: context, center: center, index: index, count: count, item: item, isActive: isActive)
         }
@@ -195,9 +222,8 @@ public final class RadialWheelView: NSView {
         )
 
         // 1. Desenhar Ícone SF Symbol acima do texto
-        let iconSize: CGFloat = (count > 8) ? 14 : 18
+        let iconSize: CGFloat = (count > 6) ? 14 : 18
         if let sfImage = NSImage(systemSymbolName: item.iconName, accessibilityDescription: nil) {
-            let iconTint = isActive ? NSColor.white : NSColor(calibratedWhite: 0.85, alpha: 0.95)
             let config = NSImage.SymbolConfiguration(pointSize: iconSize, weight: isActive ? .bold : .medium)
             if let tinted = sfImage.withSymbolConfiguration(config) {
                 let iconRect = CGRect(
@@ -213,7 +239,7 @@ public final class RadialWheelView: NSView {
         }
 
         // 2. Desenhar Título com tamanho dinâmico para não sobrepor
-        let fontSize: CGFloat = (count > 8) ? 9.5 : 11.0
+        let fontSize: CGFloat = (count > 6) ? 10.0 : 11.5
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: fontSize, weight: isActive ? .bold : .medium),
             .foregroundColor: isActive ? NSColor.white : NSColor(calibratedWhite: 0.92, alpha: 1.0)
@@ -232,7 +258,8 @@ public final class RadialWheelView: NSView {
     // MARK: - Keyboard Navigation (Acessibilidade)
 
     public override func keyDown(with event: NSEvent) {
-        let count = items.count
+        let activeItems = displayedItems
+        let count = activeItems.count
         guard count > 0 else {
             super.keyDown(with: event)
             return
@@ -245,7 +272,12 @@ public final class RadialWheelView: NSView {
             activeSectorIndex = KeyboardNavigator.nextIndex(current: activeSectorIndex, count: count)
         case 36, 49: // Enter ou Barra de Espaço
             if let idx = activeSectorIndex, idx < count {
-                onSectorSelected?(items[idx])
+                let selected = activeItems[idx]
+                if selected.id == "page.next" {
+                    cycleNextPage()
+                } else {
+                    onSectorSelected?(selected)
+                }
             }
         case 53: // Escape
             onDismissRequested?()
@@ -283,30 +315,48 @@ public final class RadialWheelView: NSView {
     public override func mouseUp(with event: NSEvent) {
         let localPoint = convert(event.locationInWindow, from: nil)
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let activeItems = displayedItems
+
         if let sectorIdx = RadialGeometry.sectorIndex(
             at: localPoint,
             center: center,
-            sectorCount: items.count,
+            sectorCount: activeItems.count,
             innerRadius: innerRadius,
             outerRadius: outerRadius
-        ), sectorIdx < items.count {
-            let selectedItem = items[sectorIdx]
-            onSectorSelected?(selectedItem)
+        ), sectorIdx < activeItems.count {
+            let selectedItem = activeItems[sectorIdx]
+            if selectedItem.id == "page.next" {
+                cycleNextPage()
+            } else {
+                onSectorSelected?(selectedItem)
+            }
         } else {
             onDismissRequested?()
         }
     }
 
+    public func cycleNextPage() {
+        let pageSize = 7
+        let totalPages = max(1, Int(ceil(Double(items.count) / Double(pageSize))))
+        currentPageIndex = (currentPageIndex + 1) % totalPages
+    }
+
     // MARK: - NSDraggingDestination (Arrasto e Soltura de Arquivos)
 
     public override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        if mode == .convert,
-           let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
+        if let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
            !urls.isEmpty {
             let descriptors = urls.map { FileDescriptor(url: $0) }
-            let dynamicTargets = FormatRegistry.defaultRegistry().availableTargets(for: descriptors)
-            if !dynamicTargets.isEmpty {
-                self.items = dynamicTargets
+            if mode == .convert {
+                let dynamicTargets = FormatRegistry.defaultRegistry().availableTargets(for: descriptors)
+                if !dynamicTargets.isEmpty {
+                    self.items = dynamicTargets
+                }
+            } else if mode == .tools {
+                let dynamicTools = ToolRegistry.availableTools(for: descriptors)
+                if !dynamicTools.isEmpty {
+                    self.items = dynamicTools
+                }
             }
         }
 
@@ -317,7 +367,21 @@ public final class RadialWheelView: NSView {
 
     public override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
         let localPoint = convert(sender.draggingLocation, from: nil)
-        updateActiveSector(from: localPoint)
+        let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let activeItems = displayedItems
+
+        if let sectorIdx = RadialGeometry.sectorIndex(
+            at: localPoint,
+            center: center,
+            sectorCount: activeItems.count,
+            innerRadius: innerRadius,
+            outerRadius: outerRadius
+        ), sectorIdx < activeItems.count, activeItems[sectorIdx].id == "page.next" {
+            // Se o usuário passar o mouse/drag sobre "Mais...", avança a página
+            cycleNextPage()
+        } else {
+            updateActiveSector(from: localPoint)
+        }
         return .copy
     }
 
@@ -333,14 +397,20 @@ public final class RadialWheelView: NSView {
 
         let localPoint = convert(sender.draggingLocation, from: nil)
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let activeItems = displayedItems
+
         if let sectorIdx = RadialGeometry.sectorIndex(
             at: localPoint,
             center: center,
-            sectorCount: items.count,
+            sectorCount: activeItems.count,
             innerRadius: innerRadius,
             outerRadius: outerRadius
-        ), sectorIdx < items.count {
-            let selectedItem = items[sectorIdx]
+        ), sectorIdx < activeItems.count {
+            let selectedItem = activeItems[sectorIdx]
+            if selectedItem.id == "page.next" {
+                cycleNextPage()
+                return false
+            }
             onDropConfirmed?(selectedItem, pboard)
             return true
         }
@@ -350,13 +420,23 @@ public final class RadialWheelView: NSView {
 
     private func updateActiveSector(from location: CGPoint) {
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let activeItems = displayedItems
         activeSectorIndex = RadialGeometry.sectorIndex(
             at: location,
             center: center,
-            sectorCount: items.count,
+            sectorCount: activeItems.count,
             innerRadius: innerRadius,
             outerRadius: outerRadius
         )
+    }
+
+    @objc private func handleAccessibilityPress(_ itemObj: Any?) {
+        guard let item = itemObj as? RadialItem else { return }
+        if item.id == "page.next" {
+            cycleNextPage()
+        } else {
+            onSectorSelected?(item)
+        }
     }
 
     // MARK: - Accessibility (VoiceOver)
@@ -367,14 +447,14 @@ public final class RadialWheelView: NSView {
 
     public override func accessibilityChildren() -> [Any]? {
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let count = items.count
+        let activeItems = displayedItems
+        let count = activeItems.count
 
-        return items.enumerated().map { (index, item) -> Any in
+        return activeItems.enumerated().map { (index, item) -> Any in
             let element = RadialSectorAccessibilityElement()
             element.item = item
-            element.onPress = { [weak self] selected in
-                self?.onSectorSelected?(selected)
-            }
+            element.actionTarget = self
+            element.actionSelector = #selector(handleAccessibilityPress)
             element.setAccessibilityRole(.button)
             element.setAccessibilityLabel(item.title)
             element.setAccessibilityHelp("Ação ou formato de destino: \(item.title)")

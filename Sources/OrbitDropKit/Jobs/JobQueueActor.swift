@@ -153,6 +153,9 @@ public actor JobQueueActor {
                     } else if cleanTarget == "zip" {
                         let out = try ArchiveProcessor.createZIP(sources: [input], directory: directory)
                         return .success([out])
+                    } else if cleanTarget == "tar.gz" || cleanTarget == "tar" {
+                        let out = try ArchiveProcessor.createTar(sources: [input], gzip: cleanTarget.contains("gz"), directory: directory)
+                        return .success([out])
                     } else if cleanTarget == "md" {
                         let out = try MarkdownConverter.convertToMarkdown(sourceURL: input, directory: directory)
                         return .success([out])

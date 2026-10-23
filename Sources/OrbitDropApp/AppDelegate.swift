@@ -76,19 +76,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     items = contextual.isEmpty ? self.defaultConvertItems : contextual
                 }
             case .tools:
-                items = [
-                    RadialItem(id: "tool.compress", title: "Comprimir", iconName: "arrow.down.circle", targetExtension: "jpg"),
-                    RadialItem(id: "tool.metadata", title: "Metadados", iconName: "info.circle", targetExtension: ""),
-                    RadialItem(id: "tool.pdf.merge", title: "Juntar PDFs", iconName: "doc.on.doc", targetExtension: ""),
-                    RadialItem(id: "tool.pdf.split", title: "Dividir PDF", iconName: "scissors", targetExtension: ""),
-                    RadialItem(id: "tool.pdf.organize", title: "Organizar Páginas", iconName: "arrow.up.and.down.and.arrow.left.and.right", targetExtension: ""),
-                    RadialItem(id: "tool.video.trim", title: "Cortar Vídeo", iconName: "film", targetExtension: ""),
-                    RadialItem(id: "tool.video.join", title: "Juntar Vídeos", iconName: "film.stack", targetExtension: ""),
-                    RadialItem(id: "tool.audio.normalize", title: "Normalizar", iconName: "waveform", targetExtension: ""),
-                    RadialItem(id: "tool.audio.visualizer", title: "Visualizer", iconName: "waveform.path.ecg", targetExtension: ""),
-                    RadialItem(id: "tool.qr", title: "Ler QR", iconName: "qrcode.viewfinder", targetExtension: ""),
-                    RadialItem(id: "tool.pdf", title: "Fotos para PDF", iconName: "doc.richtext", targetExtension: "")
-                ]
+                let draggedURLs = DragPayloadProbe.currentFileURLs()
+                if draggedURLs.isEmpty {
+                    items = ToolRegistry.defaultTools()
+                } else {
+                    let descriptors = draggedURLs.map { FileDescriptor(url: $0) }
+                    let contextual = ToolRegistry.availableTools(for: descriptors)
+                    items = contextual.isEmpty ? ToolRegistry.defaultTools() : contextual
+                }
             case .actions:
                 items = ActionDispatcher.availableActions()
             }
@@ -102,22 +97,27 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         detector.onNavigateNext = { [weak self] in
             guard let self = self, self.radialPanelController?.isVisible == true else { return }
             let wheel = self.radialPanelController!.wheelView
-            wheel.activeSectorIndex = KeyboardNavigator.nextIndex(current: wheel.activeSectorIndex, count: wheel.items.count)
+            wheel.activeSectorIndex = KeyboardNavigator.nextIndex(current: wheel.activeSectorIndex, count: wheel.displayedItems.count)
         }
 
         detector.onNavigatePrevious = { [weak self] in
             guard let self = self, self.radialPanelController?.isVisible == true else { return }
             let wheel = self.radialPanelController!.wheelView
-            wheel.activeSectorIndex = KeyboardNavigator.previousIndex(current: wheel.activeSectorIndex, count: wheel.items.count)
+            wheel.activeSectorIndex = KeyboardNavigator.previousIndex(current: wheel.activeSectorIndex, count: wheel.displayedItems.count)
         }
 
         detector.onSelectActive = { [weak self] in
             guard let self = self, self.radialPanelController?.isVisible == true else { return }
             let wheel = self.radialPanelController!.wheelView
-            if let idx = wheel.activeSectorIndex, idx < wheel.items.count {
-                let item = wheel.items[idx]
-                self.radialPanelController?.hide()
-                self.promptAndProcess(for: item)
+            let activeItems = wheel.displayedItems
+            if let idx = wheel.activeSectorIndex, idx < activeItems.count {
+                let item = activeItems[idx]
+                if item.id == "page.next" {
+                    wheel.cycleNextPage()
+                } else {
+                    self.radialPanelController?.hide()
+                    self.promptAndProcess(for: item)
+                }
             }
         }
 
@@ -129,14 +129,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             if let frame = self.radialPanelController?.panel.frame, frame.contains(location) {
                 let localPoint = wheel.convert(wheel.window?.mouseLocationOutsideOfEventStream ?? location, from: nil)
                 let center = CGPoint(x: wheel.bounds.midX, y: wheel.bounds.midY)
+                let activeItems = wheel.displayedItems
                 if let sectorIdx = RadialGeometry.sectorIndex(
                     at: localPoint,
                     center: center,
-                    sectorCount: wheel.items.count,
+                    sectorCount: activeItems.count,
                     innerRadius: wheel.innerRadius,
                     outerRadius: wheel.outerRadius
-                ), sectorIdx < wheel.items.count {
-                    let selectedItem = wheel.items[sectorIdx]
+                ), sectorIdx < activeItems.count {
+                    let selectedItem = activeItems[sectorIdx]
+                    if selectedItem.id == "page.next" {
+                        wheel.cycleNextPage()
+                        return
+                    }
                     self.radialPanelController?.hide()
                     self.promptAndProcess(for: selectedItem)
                     return
@@ -245,6 +250,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 case "tool.pdf":
                     outputs.append(try ImageToPDFConverter.createPDF(from: urls, outputDirectory: outputDir))
+                case "tool.ocr":
+                    for url in urls {
+                        outputs.append(try await OCRProcessor.recognizeText(sourceURL: url, format: .markdown, directory: outputDir))
+                    }
                 case "tool.pdf.merge":
                     outputs.append(try PDFMerger.merge(sources: urls, directory: outputDir))
                 case "tool.pdf.split":
@@ -329,11 +338,111 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let openPanel = NSOpenPanel()
         openPanel.title = "Selecione arquivos para: \(item.title)"
         openPanel.canChooseFiles = true
-        openPanel.canChooseDirectories = (item.id == "action.terminal" || item.id == "action.move")
+        openPanel.canChooseDirectories = (item.id == "action.terminal" || item.id == "action.move" || item.id == "convert.zip")
         openPanel.allowsMultipleSelection = true
         NSApp.activate(ignoringOtherApps: true)
         if openPanel.runModal() == .OK {
-            handleFilesDroppedOnItem(item: item, urls: openPanel.urls)
+            let urls = openPanel.urls
+            guard let firstURL = urls.first else { return }
+
+            if item.id == "tool.video.speed" {
+                ToolParameterEditorController.present(for: .videoSpeed(initialSpeed: 2.0), sourceURL: firstURL) { [weak self] res in
+                    if case .videoSpeed(let speed) = res {
+                        self?.processVideoSpeed(urls: urls, speed: speed)
+                    }
+                }
+                return
+            } else if item.id == "tool.compress" {
+                ToolParameterEditorController.present(for: .imageCompression(initialQuality: 0.80), sourceURL: firstURL) { [weak self] res in
+                    if case .imageCompression(let q) = res {
+                        self?.processImageCompress(urls: urls, quality: q)
+                    }
+                }
+                return
+            } else if item.id == "tool.adjust" {
+                ToolParameterEditorController.present(for: .imageAdjustments(contrast: 1.1, brightness: 0.05, saturation: 1.1), sourceURL: firstURL) { [weak self] res in
+                    if case .imageAdjustments(let c, let b, let s) = res {
+                        self?.processImageAdjust(urls: urls, contrast: c, brightness: b, saturation: s)
+                    }
+                }
+                return
+            } else if item.id == "tool.pdf.organize" {
+                ToolParameterEditorController.present(for: .pdfRotate(degrees: 90), sourceURL: firstURL) { [weak self] res in
+                    if case .pdfRotate(let deg) = res {
+                        self?.processPDFRotate(urls: urls, degrees: deg)
+                    }
+                }
+                return
+            }
+
+            handleFilesDroppedOnItem(item: item, urls: urls)
+        }
+    }
+
+    private func processVideoSpeed(urls: [URL], speed: Double) {
+        let settings = SettingsManager.shared.settings
+        let outputDir = settings.customOutputDirectory.map { URL(fileURLWithPath: $0) }
+        Task.detached(priority: .userInitiated) {
+            var outputs: [URL] = []
+            for url in urls {
+                if let out = try? await VideoSpeedController.changeSpeed(sourceURL: url, speedFactor: speed, directory: outputDir) {
+                    outputs.append(out)
+                }
+            }
+            if !outputs.isEmpty && settings.revealInFinderOnComplete {
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting(outputs) }
+            }
+        }
+    }
+
+    private func processImageCompress(urls: [URL], quality: Float) {
+        let settings = SettingsManager.shared.settings
+        let outputDir = settings.customOutputDirectory.map { URL(fileURLWithPath: $0) }
+        Task.detached(priority: .userInitiated) {
+            var outputs: [URL] = []
+            for url in urls {
+                let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+                let size = (attrs?[.size] as? NSNumber)?.int64Value ?? 1_000_000
+                let targetBytes = Int64(Double(size) * Double(quality))
+                if let out = try? ImageCompressor.compress(sourceURL: url, targetBytes: max(5_000, targetBytes), directory: outputDir) {
+                    outputs.append(out)
+                }
+            }
+            if !outputs.isEmpty && settings.revealInFinderOnComplete {
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting(outputs) }
+            }
+        }
+    }
+
+    private func processImageAdjust(urls: [URL], contrast: Float, brightness: Float, saturation: Float) {
+        let settings = SettingsManager.shared.settings
+        let outputDir = settings.customOutputDirectory.map { URL(fileURLWithPath: $0) }
+        Task.detached(priority: .userInitiated) {
+            var outputs: [URL] = []
+            for url in urls {
+                if let out = try? ImageAdjustments.apply(sourceURL: url, contrast: contrast, brightness: brightness, saturation: saturation, directory: outputDir) {
+                    outputs.append(out)
+                }
+            }
+            if !outputs.isEmpty && settings.revealInFinderOnComplete {
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting(outputs) }
+            }
+        }
+    }
+
+    private func processPDFRotate(urls: [URL], degrees: Int) {
+        let settings = SettingsManager.shared.settings
+        let outputDir = settings.customOutputDirectory.map { URL(fileURLWithPath: $0) }
+        Task.detached(priority: .userInitiated) {
+            var outputs: [URL] = []
+            for url in urls {
+                if let out = try? PDFPageOrganizer.reorganize(sourceURL: url, actions: [.rotate(pageIndex: 0, degrees: degrees)], directory: outputDir) {
+                    outputs.append(out)
+                }
+            }
+            if !outputs.isEmpty && settings.revealInFinderOnComplete {
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting(outputs) }
+            }
         }
     }
 
@@ -342,6 +451,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let settings = SettingsManager.shared.settings
         let customDirURL = settings.customOutputDirectory != nil ? URL(fileURLWithPath: settings.customOutputDirectory!) : nil
 
+        ProgressHUDController.shared.show(
+            title: "OrbitDrop — Processando...",
+            detail: "\(urls.count) arquivo(s) -> .\(targetExtension.uppercased())"
+        )
+
         Task { [jobQueue] in
             let jobID = await jobQueue.enqueue(
                 inputs: urls,
@@ -349,11 +463,24 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 directory: customDirURL
             )
 
-            if let completed = try? await jobQueue.waitForCompletion(jobID: jobID, timeoutSeconds: 60.0),
-               !completed.outputURLs.isEmpty,
-               settings.revealInFinderOnComplete {
+            ProgressHUDController.shared.onCancelRequested = { [jobQueue] in
+                Task {
+                    await jobQueue.cancel(jobID: jobID)
+                }
+            }
+
+            if let completed = try? await jobQueue.waitForCompletion(jobID: jobID, timeoutSeconds: 120.0) {
                 await MainActor.run {
-                    NSWorkspace.shared.activateFileViewerSelecting(completed.outputURLs)
+                    if completed.status == .completed {
+                        ProgressHUDController.shared.finish(success: true, message: "\(completed.outputURLs.count) arquivo(s) concluído(s).")
+                        if settings.revealInFinderOnComplete && !completed.outputURLs.isEmpty {
+                            NSWorkspace.shared.activateFileViewerSelecting(completed.outputURLs)
+                        }
+                    } else if completed.status == .cancelled {
+                        ProgressHUDController.shared.finish(success: false, message: "Operação cancelada pelo usuário.")
+                    } else {
+                        ProgressHUDController.shared.finish(success: false, message: completed.errorMessage ?? "Falha no processamento.")
+                    }
                 }
             }
         }

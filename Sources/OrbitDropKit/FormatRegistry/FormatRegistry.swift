@@ -13,13 +13,19 @@ public final class FormatRegistry: Sendable {
         var list: [FormatEdge] = []
 
         // Formatos de imagem suportados como entrada no ImagePipeline
-        let imageSources: [(UTType, [String])] = [
-            (.png, ["jpg", "jpeg", "tiff", "bmp", "png"]),
-            (.jpeg, ["png", "tiff", "bmp", "jpg"]),
-            (.heic, ["jpg", "jpeg", "png", "tiff", "bmp"]),
-            (.tiff, ["jpg", "jpeg", "png", "bmp", "tiff"]),
-            (.bmp, ["jpg", "jpeg", "png", "tiff", "bmp"])
+        var imageSources: [(UTType, [String])] = [
+            (.png, ["jpg", "jpeg", "tiff", "bmp", "png", "avif"]),
+            (.jpeg, ["png", "tiff", "bmp", "jpg", "avif"]),
+            (.heic, ["jpg", "jpeg", "png", "tiff", "bmp", "avif"]),
+            (.tiff, ["jpg", "jpeg", "png", "bmp", "tiff", "avif"]),
+            (.bmp, ["jpg", "jpeg", "png", "tiff", "bmp", "avif"])
         ]
+        if let webp = UTType(filenameExtension: "webp") {
+            imageSources.append((webp, ["jpg", "png", "tiff", "avif"]))
+        }
+        if let avif = UTType(filenameExtension: "avif") {
+            imageSources.append((avif, ["jpg", "png", "tiff"]))
+        }
 
         let extMap: [String: (UTType, String, String)] = [
             "jpg": (.jpeg, "JPEG", "photo"),
@@ -27,6 +33,7 @@ public final class FormatRegistry: Sendable {
             "png": (.png, "PNG", "photo.fill"),
             "tiff": (.tiff, "TIFF", "doc.richtext"),
             "bmp": (.bmp, "BMP", "doc.fill"),
+            "avif": (UTType(filenameExtension: "avif") ?? .jpeg, "AVIF", "sparkles"),
             "mp4": (.mpeg4Movie, "MP4", "video"),
             "mov": (.quickTimeMovie, "MOV", "video.fill"),
             "m4a": (.mpeg4Audio, "M4A", "music.note"),
@@ -37,7 +44,8 @@ public final class FormatRegistry: Sendable {
             "md": (UTType(filenameExtension: "md") ?? .plainText, "Markdown", "text.badge.checkmark"),
             "vtt": (UTType(filenameExtension: "vtt") ?? .plainText, "VTT", "captions.bubble"),
             "srt": (UTType(filenameExtension: "srt") ?? .plainText, "SRT", "captions.bubble.fill"),
-            "zip": (.zip, "ZIP", "archivebox")
+            "zip": (.zip, "ZIP", "archivebox"),
+            "tar.gz": (.data, "TAR.GZ", "archivebox.fill")
         ]
 
         for (sourceType, targetExts) in imageSources {
@@ -145,11 +153,16 @@ public final class FormatRegistry: Sendable {
             }
         }
 
-        // Fontes de arquivos e pastas para compactação ZIP
+        // Fontes de arquivos e pastas para compactação ZIP e TAR.GZ
         if let zipInfo = extMap["zip"] {
             list.append(FormatEdge(sourceType: .data, targetExtension: "zip", targetType: .zip, family: .archive, title: zipInfo.1, iconName: zipInfo.2))
             list.append(FormatEdge(sourceType: .folder, targetExtension: "zip", targetType: .zip, family: .archive, title: zipInfo.1, iconName: zipInfo.2))
             list.append(FormatEdge(sourceType: .item, targetExtension: "zip", targetType: .zip, family: .archive, title: zipInfo.1, iconName: zipInfo.2))
+        }
+        if let tarInfo = extMap["tar.gz"] {
+            list.append(FormatEdge(sourceType: .data, targetExtension: "tar.gz", targetType: .data, family: .archive, title: tarInfo.1, iconName: tarInfo.2))
+            list.append(FormatEdge(sourceType: .folder, targetExtension: "tar.gz", targetType: .data, family: .archive, title: tarInfo.1, iconName: tarInfo.2))
+            list.append(FormatEdge(sourceType: .item, targetExtension: "tar.gz", targetType: .data, family: .archive, title: tarInfo.1, iconName: tarInfo.2))
         }
 
         return FormatRegistry(edges: list)
@@ -161,7 +174,7 @@ public final class FormatRegistry: Sendable {
 
         // Helper para testar conformidade
         func supports(file: FileDescriptor, edge: FormatEdge) -> Bool {
-            if edge.targetExtension == "zip" {
+            if edge.targetExtension == "zip" || edge.targetExtension == "tar.gz" {
                 return true
             }
             if file.isDirectory { return false }

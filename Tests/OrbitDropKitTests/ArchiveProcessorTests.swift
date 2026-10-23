@@ -44,6 +44,31 @@ final class ArchiveProcessorTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: extractDir.path))
     }
 
+    func testCreateAndExtractTarGz() throws {
+        let folderToCompress = tempDirectory.appendingPathComponent("TarData")
+        try FileManager.default.createDirectory(at: folderToCompress, withIntermediateDirectories: true)
+
+        let file = folderToCompress.appendingPathComponent("data.txt")
+        try "Tar content".write(to: file, atomically: true, encoding: .utf8)
+
+        let tarURL = try ArchiveProcessor.createTar(
+            sources: [folderToCompress],
+            gzip: true,
+            directory: tempDirectory
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: tarURL.path))
+        XCTAssertTrue(tarURL.lastPathComponent.contains(".tar.gz"))
+
+        let extractDir = tempDirectory.appendingPathComponent("TarExtracted")
+        try ArchiveProcessor.extract(
+            archiveURL: tarURL,
+            destinationDirectory: extractDir
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: extractDir.path))
+    }
+
     func testPathTraversalRejection() {
         // Validação de segurança pura contra "../"
         XCTAssertFalse(ArchiveProcessor.isPathSafe(relativePath: "../escaped.txt"))

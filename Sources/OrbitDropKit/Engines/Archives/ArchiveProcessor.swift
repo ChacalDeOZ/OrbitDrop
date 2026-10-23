@@ -81,7 +81,51 @@ public enum ArchiveProcessor: Sendable {
         }
     }
 
-    /// Extrai um arquivo ZIP validando quotas de descompressão e bloqueando path traversal e symlinks escapados.
+    /// Cria um arquivo TAR ou TAR.GZ usando /usr/bin/tar nativo.
+    @discardableResult
+    public static func createTar(
+        sources: [URL],
+        gzip: Bool = true,
+        directory: URL? = nil
+    ) throws -> URL {
+        guard !sources.isEmpty else { throw ArchiveError.emptySources }
+
+        let firstURL = sources[0]
+        let baseDir = directory ?? firstURL.deletingLastPathComponent()
+        let rawBaseName = firstURL.deletingPathExtension().lastPathComponent
+        let ext = gzip ? "tar.gz" : "tar"
+        let destinationURL = destinationArchiveURL(in: baseDir, baseName: rawBaseName, ext: ext)
+
+        return try OutputWriter.withStagingFile(targetURL: destinationURL) { stagingURL in
+            let stagingDir = FileManager.default.temporaryDirectory.appendingPathComponent("orbitdrop_staging_tar_\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: stagingDir, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: stagingDir) }
+
+            for source in sources {
+                let dst = stagingDir.appendingPathComponent(source.lastPathComponent)
+                try FileManager.default.copyItem(at: source, to: dst)
+            }
+
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            let flags = gzip ? "-czf" : "-cf"
+            process.arguments = [flags, stagingURL.path, "-C", stagingDir.path] + sources.map { $0.lastPathComponent }
+
+            let errorPipe = Pipe()
+            process.standardError = errorPipe
+
+            try process.run()
+            process.waitUntilExit()
+
+            guard process.terminationStatus == 0 else {
+                let errData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                let errMsg = String(data: errData, encoding: .utf8) ?? "Erro tar desconhecido"
+                throw ArchiveError.compressionFailed(errMsg)
+            }
+        }
+    }
+
+    /// Extrai um arquivo ZIP, TAR ou TAR.GZ validando quotas de descompressão e bloqueando path traversal e symlinks escapados.
     public static func extract(
         archiveURL: URL,
         destinationDirectory: URL
@@ -99,9 +143,17 @@ public enum ArchiveProcessor: Sendable {
         try fm.createDirectory(at: tempExtractionDir, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: tempExtractionDir) }
 
+        let ext = archiveURL.pathExtension.lowercased()
+        let isTar = (ext == "tar" || ext == "gz" || ext == "tgz" || archiveURL.lastPathComponent.hasSuffix(".tar.gz"))
+
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        process.arguments = ["-x", "-k", archiveURL.path, tempExtractionDir.path]
+        if isTar {
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            process.arguments = ["-xf", archiveURL.path, "-C", tempExtractionDir.path]
+        } else {
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+            process.arguments = ["-x", "-k", archiveURL.path, tempExtractionDir.path]
+        }
 
         let errorPipe = Pipe()
         process.standardError = errorPipe
@@ -111,7 +163,7 @@ public enum ArchiveProcessor: Sendable {
 
         guard process.terminationStatus == 0 else {
             let errData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-            let errMsg = String(data: errData, encoding: .utf8) ?? "Erro de descompressão ditto"
+            let errMsg = String(data: errData, encoding: .utf8) ?? "Erro de descompressão"
             throw ArchiveError.extractionFailed(errMsg)
         }
 
