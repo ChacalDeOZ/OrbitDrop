@@ -150,6 +150,37 @@ O bundle pronto para uso será criado em `build/OrbitDrop.app`.
 open build/OrbitDrop.app
 ```
 
+### 5. Gerar ZIP para Enviar para Amigos
+```bash
+ditto -c -k --keepParent build/OrbitDrop.app build/OrbitDrop-macOS.zip
+```
+
+---
+
+## 🛡️ Guia de Primeiro Acesso & Instalação para Usuários
+
+Ao compartilhar o aplicativo compilado com amigos ou instalar em uma nova máquina, siga estas duas etapas essenciais do macOS:
+
+### 1. Requisitos de Sistema
+- **Hardware:** Computador Mac com Apple Silicon (**M1, M2, M3, M4** ou superior).
+- **Sistema Operacional:** macOS 13.0 (Ventura), 14.0 (Sonoma), 15.0 (Sequoia) ou mais recente.
+
+### 2. Contornar o Gatekeeper do macOS (Desenvolvedor Não Identificado)
+Como o app é de código aberto e assinado ad-hoc (sem taxa de certificado anual da Apple), o macOS bloqueia o primeiro clique direto por segurança:
+- **Pela Interface:** Clique no `OrbitDrop.app` com o **botão direito (ou segure Control + clique)** > selecione **Abrir** > clique em **Abrir** no diálogo de confirmação. Isso só precisa ser feito uma única vez.
+- **Ou via Terminal:** Remova o atributo de quarentena de download:
+  ```bash
+  xattr -cr /Applications/OrbitDrop.app
+  ```
+
+### 3. Concessão de Acessibilidade
+O OrbitDrop opera em nível de sistema para detectar quando arquivos estão sendo arrastados no Finder em conjunto com as teclas modificadoras (<kbd>⇧ Shift</kbd>, <kbd>⌘ Cmd</kbd>, <kbd>⌃ Ctrl</kbd>):
+1. Na primeira abertura, a janela de **Boas-Vindas (Onboarding)** surgirá automaticamente.
+2. Clique no botão de atalho para abrir os Ajustes ou navegue manualmente até:
+   **Ajustes do Sistema** ➔ **Privacidade e Segurança** ➔ **Acessibilidade**.
+3. Ative a chave ao lado de **OrbitDrop**.
+4. Pronto! O app fica residente silenciosamente na barra de menus superior.
+
 ---
 
 ## ♿ Acessibilidade e Teclado
