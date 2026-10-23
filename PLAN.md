@@ -26,11 +26,11 @@ Este documento registra o roadmap técnico completo do aplicativo **OrbitDrop**,
 - [x] Teste de conformidade: 105 conversões contínuas ultrapassando o limite comercial do concorrente.
 - [x] Documento de viabilidade empírica (`POC_FINDINGS.md`).
 
-### Fase 1 — Core do Sistema, 3 Rodas e 6 Ações de Arquivo
-- [ ] Registro dinâmico de capacidades (`FormatRegistry`).
-- [ ] Orquestrador de jobs em lote assíncrono com limites de CPU/RAM.
-- [ ] As 6 ações de arquivo: AirDrop (`NSSharingService`), Float Shelf (`NSPanel` persistente), Copy (para clipboard do Finder), Move (com confirmação atômica), Copy Path (UTF-8 e shell-escaped), Terminal (abrir pasta no Terminal ou iTerm2).
-- [ ] Configuração de atalhos e preferências básicas (`SettingsView`).
+### Fase 1 — Core do Sistema, 3 Rodas e 6 Ações de Arquivo (CONCLUÍDO)
+- [x] Registro dinâmico de capacidades (`FormatRegistry`).
+- [x] Orquestrador de jobs em lote assíncrono com limites de CPU/RAM.
+- [x] As 6 ações de arquivo: AirDrop (`NSSharingService`), Float Shelf (`NSPanel` persistente), Copy (para clipboard do Finder), Move (com confirmação atômica), Copy Path (UTF-8 e shell-escaped), Terminal (abrir pasta no Terminal ou iTerm2).
+- [x] Configuração de atalhos e preferências básicas (`SettingsView`).
 
 ### Fase 2 — Ferramentas de Imagem e Privacidade (CONCLUÍDO)
 - [x] T01 Compressão inteligente (otimização de tamanho por busca iterativa).
