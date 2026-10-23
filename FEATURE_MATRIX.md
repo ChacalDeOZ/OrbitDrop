@@ -15,6 +15,7 @@
 | Vídeo (MP4, MOV) | MP4, MOV, M4A | AVFoundation / VideoToolbox | **IMPLEMENTADO & VALIDADO** | `VideoTranscodeAndFramesTests`, `VideoTimeEditsTests`, `VideoCompositionTests` |
 | PDF (Páginas para Imagem 300 DPI) | JPG / PNG | PDFKit / ImageIO | **IMPLEMENTADO & VALIDADO** | `PDFRasterAndTextTests` |
 | PDF (Merge / Split / Reorder) | PDF | PDFKit | **IMPLEMENTADO & VALIDADO** | `PDFMergeAndSplitTests`, `PDFPageOrganizerTests` |
+| Documentos (HTML, RTF, TXT, JSON, Código) | Markdown (MD) | MarkdownConverter | **IMPLEMENTADO & VALIDADO** | `MarkdownConverterTests` |
 | Legendas (SRT ↔ VTT) | SRT, VTT | SubtitleConverter | **IMPLEMENTADO & VALIDADO** | `SubtitleConverterTests` |
 | Compactados (ZIP) | ZIP | NSFileCoordinator / ArchiveProcessor | **IMPLEMENTADO & VALIDADO** | `ArchiveProcessorTests` |
 

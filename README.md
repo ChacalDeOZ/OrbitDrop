@@ -90,7 +90,7 @@ Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda rad
 - **T22 Organizar Páginas:** Rotação (±90°), reordenação, exclusão e duplicação com cópia profunda.
 - **T23 Dividir PDF:** Separação página por página (`-page-001.pdf`) com resolução de conflitos.
 - **Render 300 DPI:** Exportação de páginas de PDF para imagens nítidas prontas para impressão.
-- **Extração de Texto:** Conversão de PDF para TXT limpo ou Markdown estruturado.
+- **Extração de Texto e Conversor Markdown:** Conversão de PDF, HTML, RTF, JSON, código fonte e texto para Markdown (`.md`) estruturado.
 - **Conversor de Legendas:** Conversão bidirecional SRT ↔ VTT com ajuste de timestamps.
 - **Compactação Segura (ZIP):** Criação e extração via `/usr/bin/ditto` nativo com proteção estrita contra path traversal (`../`) e zip bombs.
 </details>

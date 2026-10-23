@@ -137,6 +137,14 @@ public final class FormatRegistry: Sendable {
             }
         }
 
+        // Fontes para conversão em Markdown (.md)
+        if let mdInfo = extMap["md"] {
+            let docTypes: [UTType] = [.html, .rtf, .plainText, .json, .sourceCode]
+            for docType in docTypes {
+                list.append(FormatEdge(sourceType: docType, targetExtension: "md", targetType: mdInfo.0, family: .document, title: mdInfo.1, iconName: mdInfo.2))
+            }
+        }
+
         // Fontes de arquivos e pastas para compactação ZIP
         if let zipInfo = extMap["zip"] {
             list.append(FormatEdge(sourceType: .data, targetExtension: "zip", targetType: .zip, family: .archive, title: zipInfo.1, iconName: zipInfo.2))
