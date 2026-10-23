@@ -10,7 +10,7 @@ public struct AppSettings: Sendable, Codable, Equatable {
     public init(
         saveBesideOriginal: Bool = true,
         customOutputDirectory: String? = nil,
-        revealInFinderOnComplete: Bool = true,
+        revealInFinderOnComplete: Bool = false,
         preferITerm: Bool = false,
         maxConcurrency: Int = 4
     ) {

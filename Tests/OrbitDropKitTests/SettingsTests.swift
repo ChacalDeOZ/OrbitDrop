@@ -21,7 +21,7 @@ final class SettingsTests: XCTestCase {
 
         XCTAssertTrue(settings.saveBesideOriginal)
         XCTAssertNil(settings.customOutputDirectory)
-        XCTAssertTrue(settings.revealInFinderOnComplete)
+        XCTAssertFalse(settings.revealInFinderOnComplete)
         XCTAssertFalse(settings.preferITerm)
         XCTAssertEqual(settings.maxConcurrency, 4)
     }
@@ -32,6 +32,7 @@ final class SettingsTests: XCTestCase {
         var newSettings = manager.settings
         newSettings.saveBesideOriginal = false
         newSettings.customOutputDirectory = "/Users/test/Converted"
+        newSettings.revealInFinderOnComplete = true
         newSettings.preferITerm = true
         newSettings.maxConcurrency = 8
 
@@ -43,6 +44,7 @@ final class SettingsTests: XCTestCase {
 
         XCTAssertFalse(loaded.saveBesideOriginal)
         XCTAssertEqual(loaded.customOutputDirectory, "/Users/test/Converted")
+        XCTAssertTrue(loaded.revealInFinderOnComplete)
         XCTAssertTrue(loaded.preferITerm)
         XCTAssertEqual(loaded.maxConcurrency, 8)
     }

@@ -14,6 +14,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let formatRegistry = FormatRegistry.defaultRegistry()
     private let jobQueue = JobQueueActor(maxConcurrency: 4)
+    private var lastDetectedDragURLs: [URL] = []
 
     private var defaultConvertItems: [RadialItem] {
         // Fallback para quando nenhum arquivo prévio estiver inferido
@@ -63,11 +64,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Intenção de arrasto detectada (Shift, Command, Control)
         detector.onModeTriggered = { [weak self] mode, cursor in
             guard let self = self else { return }
+            let draggedURLs = DragPayloadProbe.currentFileURLs()
+            self.lastDetectedDragURLs = draggedURLs
+
             let items: [RadialItem]
             switch mode {
             case .convert:
                 // Resolver formatos diretamente do pasteboard da sessão de drag do Finder.
-                let draggedURLs = DragPayloadProbe.currentFileURLs()
                 if draggedURLs.isEmpty {
                     items = self.defaultConvertItems
                 } else {
@@ -76,7 +79,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     items = contextual.isEmpty ? self.defaultConvertItems : contextual
                 }
             case .tools:
-                let draggedURLs = DragPayloadProbe.currentFileURLs()
                 if draggedURLs.isEmpty {
                     items = ToolRegistry.defaultTools()
                 } else {
@@ -90,7 +92,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             radialController.show(at: cursor, mode: mode, items: items)
         }
 
-        detector.onDragCancelled = {
+        detector.onDragCancelled = { [weak self] in
+            self?.lastDetectedDragURLs = []
             radialController.hide()
         }
 
@@ -116,7 +119,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     wheel.cycleNextPage()
                 } else {
                     self.radialPanelController?.hide()
-                    self.promptAndProcess(for: item)
+                    let urls = !self.lastDetectedDragURLs.isEmpty ? self.lastDetectedDragURLs : DragPayloadProbe.currentFileURLs()
+                    self.lastDetectedDragURLs = []
+                    if !urls.isEmpty {
+                        self.handleFilesDroppedOnItem(item: item, urls: urls)
+                    } else {
+                        self.promptAndProcess(for: item)
+                    }
                 }
             }
         }
@@ -143,17 +152,25 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                         return
                     }
                     self.radialPanelController?.hide()
-                    self.promptAndProcess(for: selectedItem)
+                    let urls = !self.lastDetectedDragURLs.isEmpty ? self.lastDetectedDragURLs : DragPayloadProbe.currentFileURLs()
+                    self.lastDetectedDragURLs = []
+                    if !urls.isEmpty {
+                        self.handleFilesDroppedOnItem(item: selectedItem, urls: urls)
+                    } else {
+                        self.promptAndProcess(for: selectedItem)
+                    }
                     return
                 }
             }
 
             // Se soltou fora ou no centro, fecha imediatamente o menu
+            self.lastDetectedDragURLs = []
             self.radialPanelController?.hide()
         }
 
         // Drop na roda radial
         radialController.wheelView.onDropConfirmed = { [weak self] item, urls in
+            self?.lastDetectedDragURLs = []
             self?.handleFilesDroppedOnItem(item: item, urls: urls)
             radialController.hide()
         }
@@ -161,8 +178,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Clique direto no setor da roda
         radialController.wheelView.onSectorSelected = { [weak self] item in
             guard let self = self else { return }
-            radialController.hide()
-            self.promptAndProcess(for: item)
+            self.radialPanelController?.hide()
+            let urls = !self.lastDetectedDragURLs.isEmpty ? self.lastDetectedDragURLs : DragPayloadProbe.currentFileURLs()
+            self.lastDetectedDragURLs = []
+            if !urls.isEmpty {
+                self.handleFilesDroppedOnItem(item: item, urls: urls)
+            } else {
+                self.promptAndProcess(for: item)
+            }
         }
 
         // Clique fora / centro neutro
