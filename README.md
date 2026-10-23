@@ -121,12 +121,20 @@ Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda rad
 
 ---
 
-## 🚀 Como Compilar e Rodar
+## 🚀 Como Compilar e Rodar (Desenvolvedores)
+
+> [!IMPORTANT]
+> **Você precisa do compilador Swift / Xcode instalado no Mac.**
+> Não é obrigatório baixar o Xcode completo de 15 GB da App Store. Basta ter as ferramentas de linha de comando oficiais da Apple. Se você ainda não tem, rode no Terminal:
+> ```bash
+> xcode-select --install
+> ```
 
 ### Pré-requisitos
-- Mac com Apple Silicon (M1, M2, M3, M4 ou superior).
+- Mac com Apple Silicon (**M1, M2, M3, M4** ou superior).
 - macOS 13.0 (Ventura) ou superior.
-- Xcode 16+ ou Command Line Tools instalados (`xcode-select --install`).
+- **Xcode 16+** ou **Xcode Command Line Tools** instalados (`xcode-select --install`).
+- Zero bibliotecas externas (100% APIs nativas da Apple: AppKit, AVFoundation, Vision, ImageIO, PDFKit).
 
 ### 1. Clonar o Repositório
 ```bash
