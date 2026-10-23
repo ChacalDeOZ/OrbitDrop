@@ -109,6 +109,24 @@ public actor JobQueueActor {
         job.status = .running
         jobs[id] = job
 
+        let cleanTarget = targetExtension.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased()
+
+        // Se múltiplos arquivos ou lote de imagens for convertido para PDF, consolida em 1 único documento
+        if cleanTarget == "pdf" {
+            let imageExtensions = ["jpg", "jpeg", "png", "heic", "tiff", "bmp", "webp", "avif"]
+            let allImages = inputs.allSatisfy { imageExtensions.contains($0.pathExtension.lowercased()) }
+            if allImages && !inputs.isEmpty {
+                do {
+                    let pdf = try ImageToPDFConverter.createPDF(from: inputs, outputDirectory: directory)
+                    finishJob(id: id, status: .completed, outputs: [pdf])
+                    return
+                } catch {
+                    finishJob(id: id, status: .failed, outputs: [], error: error.localizedDescription)
+                    return
+                }
+            }
+        }
+
         var outputs: [URL] = []
         let total = Double(inputs.count)
         var completedCount = 0.0
@@ -158,6 +176,9 @@ public actor JobQueueActor {
                         return .success([out])
                     } else if cleanTarget == "md" {
                         let out = try MarkdownConverter.convertToMarkdown(sourceURL: input, directory: directory)
+                        return .success([out])
+                    } else if cleanTarget == "pdf" {
+                        let out = try ImageToPDFConverter.createPDF(from: [input], outputDirectory: directory)
                         return .success([out])
                     } else {
                         let out = try ImagePipeline.convert(

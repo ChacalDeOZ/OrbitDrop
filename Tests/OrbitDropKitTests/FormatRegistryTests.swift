@@ -14,6 +14,8 @@ final class FormatRegistryTests: XCTestCase {
 
         XCTAssertFalse(targets.isEmpty)
         let extensions = targets.map { $0.targetExtension.lowercased() }
+        XCTAssertTrue(extensions.contains("pdf"))
+        XCTAssertEqual(extensions.first, "pdf", "PDF deve ser priorizado como primeiro alvo comum para imagens")
         XCTAssertTrue(extensions.contains("jpg"))
         XCTAssertTrue(extensions.contains("tiff"))
         XCTAssertTrue(extensions.contains("bmp"))
@@ -32,8 +34,9 @@ final class FormatRegistryTests: XCTestCase {
         let registry = FormatRegistry.defaultRegistry()
         let commonTargets = registry.availableTargets(for: [pngFile, heicFile])
 
-        // Ambos suportam exportação para JPEG:
+        // Ambos suportam exportação para PDF e JPEG:
         let extensions = commonTargets.map { $0.targetExtension.lowercased() }
+        XCTAssertTrue(extensions.contains("pdf"))
         XCTAssertTrue(extensions.contains("jpg"))
     }
 

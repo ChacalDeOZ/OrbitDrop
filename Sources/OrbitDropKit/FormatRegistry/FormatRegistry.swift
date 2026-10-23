@@ -14,17 +14,17 @@ public final class FormatRegistry: Sendable {
 
         // Formatos de imagem suportados como entrada no ImagePipeline
         var imageSources: [(UTType, [String])] = [
-            (.png, ["jpg", "jpeg", "tiff", "bmp", "png", "avif"]),
-            (.jpeg, ["png", "tiff", "bmp", "jpg", "avif"]),
-            (.heic, ["jpg", "jpeg", "png", "tiff", "bmp", "avif"]),
-            (.tiff, ["jpg", "jpeg", "png", "bmp", "tiff", "avif"]),
-            (.bmp, ["jpg", "jpeg", "png", "tiff", "bmp", "avif"])
+            (.png, ["pdf", "jpg", "jpeg", "tiff", "bmp", "png", "avif"]),
+            (.jpeg, ["pdf", "png", "tiff", "bmp", "jpg", "avif"]),
+            (.heic, ["pdf", "jpg", "jpeg", "png", "tiff", "bmp", "avif"]),
+            (.tiff, ["pdf", "jpg", "jpeg", "png", "bmp", "tiff", "avif"]),
+            (.bmp, ["pdf", "jpg", "jpeg", "png", "tiff", "bmp", "avif"])
         ]
         if let webp = UTType(filenameExtension: "webp") {
-            imageSources.append((webp, ["jpg", "png", "tiff", "avif"]))
+            imageSources.append((webp, ["pdf", "jpg", "png", "tiff", "avif"]))
         }
         if let avif = UTType(filenameExtension: "avif") {
-            imageSources.append((avif, ["jpg", "png", "tiff"]))
+            imageSources.append((avif, ["pdf", "jpg", "png", "tiff"]))
         }
 
         let extMap: [String: (UTType, String, String)] = [
@@ -207,8 +207,16 @@ public final class FormatRegistry: Sendable {
             }
         }
 
-        // Mapeia para RadialItem estável e ordenado
-        return commonTargetsMap.sorted(by: { $0.key < $1.key }).map { (key, val) in
+        // Mapeia para RadialItem ordenado por prioridade de uso mais comum
+        let priorityOrder = ["pdf", "png", "jpg", "jpeg", "webp", "avif", "tiff", "bmp", "mp4", "mov", "m4a", "wav", "aiff", "md", "txt", "srt", "vtt", "zip", "tar.gz"]
+        return commonTargetsMap.sorted(by: { (a, b) in
+            let idxA = priorityOrder.firstIndex(of: a.key) ?? 999
+            let idxB = priorityOrder.firstIndex(of: b.key) ?? 999
+            if idxA != idxB {
+                return idxA < idxB
+            }
+            return a.key < b.key
+        }).map { (key, val) in
             RadialItem(
                 id: "convert.\(key)",
                 title: val.title,

@@ -9,7 +9,7 @@
 [![Swift](https://img.shields.io/badge/Swift-6.0-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://swift.org)
 [![Architecture](https://img.shields.io/badge/Architecture-Apple%20Silicon%20(arm64)-007ACC?style=for-the-badge)](https://apple.com)
 [![CI](https://github.com/ChacalDeOZ/OrbitDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/ChacalDeOZ/OrbitDrop/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/Tests-102%20passing-brightgreen?style=for-the-badge)](https://github.com/ChacalDeOZ/OrbitDrop)
+[![Tests](https://img.shields.io/badge/Tests-103%20passing-brightgreen?style=for-the-badge)](https://github.com/ChacalDeOZ/OrbitDrop)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/ChacalDeOZ/OrbitDrop?style=for-the-badge&color=gold)](https://github.com/ChacalDeOZ/OrbitDrop/stargazers)
 
@@ -134,7 +134,7 @@ git clone https://github.com/ChacalDeOZ/OrbitDrop.git
 cd OrbitDrop
 ```
 
-### 2. Rodar a Suíte de Testes (102 testes unitários e de integração)
+### 2. Rodar a Suíte de Testes (103 testes unitários e de integração)
 ```bash
 swift test
 ```
@@ -180,7 +180,7 @@ OrbitDrop/
 │       ├── Onboarding/         # Fluxo nativo de boas-vindas em 5 passos
 │       ├── Settings/           # Preferências persistidas thread-safe
 │       └── UI/                 # Menus radiais paginados, Float Shelf, HUD de Parâmetros e HUD de Progresso
-└── Tests/                      # 102 testes automatizados cobrindo todos os fluxos
+└── Tests/                      # 103 testes automatizados cobrindo todos os fluxos
 ```
 
 ---

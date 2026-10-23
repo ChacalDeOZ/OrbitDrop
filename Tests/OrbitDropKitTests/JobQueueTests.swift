@@ -104,4 +104,19 @@ final class JobQueueTests: XCTestCase {
         XCTAssertEqual(result.outputURLs.count, 1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: result.outputURLs[0].path))
     }
+
+    func testBatchImagesToPDFInJobQueue() async throws {
+        let f1 = try createTestPNG()
+        let f2 = try createTestPNG()
+        let queue = JobQueueActor(maxConcurrency: 1)
+
+        let jobID = await queue.enqueue(inputs: [f1, f2], targetExtension: "pdf", directory: tempDirectory)
+        let result = try await queue.waitForCompletion(jobID: jobID, timeoutSeconds: 5.0)
+
+        XCTAssertEqual(result.status, .completed)
+        XCTAssertEqual(result.outputURLs.count, 1, "Múltiplas imagens para PDF devem ser consolidadas em 1 arquivo PDF")
+        let pdfURL = result.outputURLs[0]
+        XCTAssertTrue(FileManager.default.fileExists(atPath: pdfURL.path))
+        XCTAssertEqual(pdfURL.pathExtension.lowercased(), "pdf")
+    }
 }

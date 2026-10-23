@@ -26,8 +26,8 @@ public enum ToolRegistry: Sendable {
                 RadialItem(id: "tool.qr", title: "Ler QR", iconName: "qrcode.viewfinder", targetExtension: "")
             ]
             if files.count > 1 {
+                tools.insert(RadialItem(id: "tool.pdf", title: "Fotos para PDF", iconName: "doc.richtext", targetExtension: ""), at: 0)
                 tools.append(RadialItem(id: "tool.collage", title: "Colagem", iconName: "square.grid.2x2", targetExtension: ""))
-                tools.append(RadialItem(id: "tool.pdf", title: "Fotos para PDF", iconName: "doc.richtext", targetExtension: ""))
             }
             return tools
         }

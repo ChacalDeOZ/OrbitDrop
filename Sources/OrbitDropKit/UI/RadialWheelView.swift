@@ -94,19 +94,19 @@ public final class RadialWheelView: NSView {
         let activeItems = displayedItems
         let count = max(activeItems.count, 1)
 
-        // 1. Fundo Circular Exterior Elegante com Glassmorphism
+        // 1. Fundo Circular Exterior Elegante com Glassmorphism Ultra-Refinado
         context.saveGState()
 
-        // Sombra suave exterior
-        context.setShadow(offset: CGSize(width: 0, height: -4), blur: 16, color: NSColor.black.withAlphaComponent(0.35).cgColor)
-        context.setFillColor(NSColor(calibratedWhite: 0.12, alpha: 0.94).cgColor)
+        // Sombra exterior profunda e difusa
+        context.setShadow(offset: CGSize(width: 0, height: -6), blur: 20, color: NSColor.black.withAlphaComponent(0.45).cgColor)
+        context.setFillColor(NSColor(calibratedWhite: 0.09, alpha: 0.95).cgColor)
         context.addArc(center: center, radius: outerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         context.fillPath()
         context.restoreGState()
 
-        // Borda sutil metálica do anel exterior
+        // Borda sutil de vidro com gradiente metálico
         context.saveGState()
-        context.setStrokeColor(NSColor(calibratedWhite: 0.35, alpha: 0.55).cgColor)
+        context.setStrokeColor(NSColor(calibratedWhite: 0.38, alpha: 0.50).cgColor)
         context.setLineWidth(1.2)
         context.addArc(center: center, radius: outerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         context.strokePath()
@@ -115,7 +115,7 @@ public final class RadialWheelView: NSView {
         // 2. Linhas Divisórias Discretas entre Setores
         if count > 1 {
             context.saveGState()
-            context.setStrokeColor(NSColor(calibratedWhite: 0.28, alpha: 0.40).cgColor)
+            context.setStrokeColor(NSColor(calibratedWhite: 0.26, alpha: 0.40).cgColor)
             context.setLineWidth(1.0)
             let span = 360.0 / CGFloat(count)
             for i in 0..<count {
@@ -136,51 +136,165 @@ public final class RadialWheelView: NSView {
             drawSector(context: context, center: center, index: index, count: count, item: item, isActive: isActive)
         }
 
-        // 4. Centro Neutro (Badge de Modo Estilo macOS Nativo)
+        // 4. Centro Neutro (Puck Glassmorphism com Indicador do Modo)
+        drawCenterPuck(context: context, center: center)
+    }
+
+    private func drawCenterPuck(context: CGContext, center: CGPoint) {
+        // Sombra sob o puck central
         context.saveGState()
-        context.setShadow(offset: CGSize(width: 0, height: -1), blur: 6, color: NSColor.black.withAlphaComponent(0.4).cgColor)
-        context.setFillColor(NSColor(calibratedWhite: 0.18, alpha: 0.98).cgColor)
+        context.setShadow(offset: CGSize(width: 0, height: -2), blur: 8, color: NSColor.black.withAlphaComponent(0.5).cgColor)
+        context.setFillColor(NSColor(calibratedWhite: 0.15, alpha: 0.98).cgColor)
         context.addArc(center: center, radius: innerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         context.fillPath()
         context.restoreGState()
 
-        // Borda do centro
+        // Borda de destaque do centro com a cor tema do modo
+        let accent = modeAccentColor
         context.saveGState()
-        context.setStrokeColor(NSColor(calibratedWhite: 0.35, alpha: 0.6).cgColor)
-        context.setLineWidth(1.2)
+        context.setStrokeColor(accent.withAlphaComponent(0.70).cgColor)
+        context.setLineWidth(1.5)
         context.addArc(center: center, radius: innerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
         context.strokePath()
         context.restoreGState()
 
-        // Texto do Modo Central (Tipografia refinada)
+        // Ícone SF Symbol do Modo no Topo do Centro
+        let modeIconSize: CGFloat = 13.0
+        if let sfImage = NSImage(systemSymbolName: modeIconName, accessibilityDescription: nil) {
+            let config = NSImage.SymbolConfiguration(pointSize: modeIconSize, weight: .bold)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [accent]))
+            if let tinted = sfImage.withSymbolConfiguration(config) {
+                let iconRect = CGRect(
+                    x: center.x - modeIconSize / 2.0,
+                    y: center.y + 10,
+                    width: modeIconSize,
+                    height: modeIconSize
+                )
+                NSGraphicsContext.saveGraphicsState()
+                tinted.draw(in: iconRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+                NSGraphicsContext.restoreGraphicsState()
+            }
+        }
+
+        // Título do Modo Central
         let modeAttributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: NSColor(calibratedWhite: 0.92, alpha: 1.0)
+            .font: NSFont.systemFont(ofSize: 10, weight: .bold),
+            .foregroundColor: NSColor(calibratedWhite: 0.95, alpha: 1.0)
         ]
         let modeStr = mode.title as NSString
         let modeSize = modeStr.size(withAttributes: modeAttributes)
         let modeRect = CGRect(
             x: center.x - modeSize.width / 2.0,
-            y: center.y - modeSize.height / 2.0 + 4,
+            y: center.y - 4,
             width: modeSize.width,
             height: modeSize.height
         )
         modeStr.draw(in: modeRect, withAttributes: modeAttributes)
 
-        // Subtítulo do atalho no centro
+        // Pill / Tecla Modificadora (<kbd>⇧ Shift</kbd>)
         let hintAttrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 8, weight: .medium),
-            .foregroundColor: NSColor(calibratedWhite: 0.55, alpha: 1.0)
+            .font: NSFont.systemFont(ofSize: 8, weight: .semibold),
+            .foregroundColor: NSColor(calibratedWhite: 0.85, alpha: 1.0)
         ]
         let hintStr = mode.shortcutHint as NSString
         let hintSize = hintStr.size(withAttributes: hintAttrs)
-        let hintRect = CGRect(
-            x: center.x - hintSize.width / 2.0,
-            y: center.y - modeSize.height / 2.0 - 10,
-            width: hintSize.width,
-            height: hintSize.height
+        let pillRect = CGRect(
+            x: center.x - (hintSize.width + 10) / 2.0,
+            y: center.y - 20,
+            width: hintSize.width + 10,
+            height: hintSize.height + 4
         )
-        hintStr.draw(in: hintRect, withAttributes: hintAttrs)
+
+        // Fundo do pill
+        context.saveGState()
+        context.setFillColor(NSColor(calibratedWhite: 0.25, alpha: 0.75).cgColor)
+        let pillPath = CGPath(roundedRect: pillRect, cornerWidth: 3, cornerHeight: 3, transform: nil)
+        context.addPath(pillPath)
+        context.fillPath()
+        context.restoreGState()
+
+        hintStr.draw(
+            in: CGRect(x: pillRect.origin.x + 5, y: pillRect.origin.y + 2, width: hintSize.width, height: hintSize.height),
+            withAttributes: hintAttrs
+        )
+
+        // Indicador de Página (Dots) quando houver mais de 1 página
+        let totalPages = max(1, Int(ceil(Double(items.count) / 7.0)))
+        if items.count > 8 && totalPages > 1 {
+            let dotRadius: CGFloat = 2.0
+            let dotSpacing: CGFloat = 6.0
+            let totalWidth = CGFloat(totalPages) * (dotRadius * 2) + CGFloat(totalPages - 1) * dotSpacing
+            let startX = center.x - totalWidth / 2.0
+
+            for p in 0..<totalPages {
+                let dotCenter = CGPoint(x: startX + CGFloat(p) * (dotRadius * 2 + dotSpacing) + dotRadius, y: center.y - 30)
+                context.saveGState()
+                if p == (currentPageIndex % totalPages) {
+                    context.setFillColor(accent.cgColor)
+                } else {
+                    context.setFillColor(NSColor(calibratedWhite: 0.45, alpha: 0.5).cgColor)
+                }
+                context.addArc(center: dotCenter, radius: dotRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
+                context.fillPath()
+                context.restoreGState()
+            }
+        }
+    }
+
+    private var modeIconName: String {
+        switch mode {
+        case .convert:
+            return "arrow.triangle.2.circlepath"
+        case .tools:
+            return "wrench.and.screwdriver.fill"
+        case .actions:
+            return "bolt.circle.fill"
+        }
+    }
+
+    private var modeAccentColor: NSColor {
+        switch mode {
+        case .convert:
+            return NSColor(srgbRed: 0.25, green: 0.65, blue: 1.0, alpha: 1.0)
+        case .tools:
+            return NSColor(srgbRed: 1.0, green: 0.62, blue: 0.20, alpha: 1.0)
+        case .actions:
+            return NSColor(srgbRed: 0.35, green: 0.85, blue: 0.45, alpha: 1.0)
+        }
+    }
+
+    private func categoryColor(for item: RadialItem) -> NSColor {
+        let id = item.id.lowercased()
+        let target = item.targetExtension.lowercased()
+
+        if id == "page.next" {
+            return NSColor(calibratedWhite: 0.90, alpha: 0.9)
+        }
+        if target == "pdf" || id.contains("pdf") {
+            return NSColor(srgbRed: 0.98, green: 0.35, blue: 0.32, alpha: 1.0) // Coral Red
+        }
+        if ["png", "jpg", "jpeg", "heic", "webp", "avif", "tiff", "bmp"].contains(target) || id.contains("image") || id == "tool.compress" || id == "tool.crop" || id == "tool.adjust" || id == "tool.background" || id == "tool.annotate" {
+            return NSColor(srgbRed: 0.30, green: 0.75, blue: 1.00, alpha: 1.0) // Sky Blue
+        }
+        if target == "md" || target == "txt" || id.contains("ocr") || id.contains("metadata") {
+            return NSColor(srgbRed: 0.35, green: 0.88, blue: 0.55, alpha: 1.0) // Emerald Green
+        }
+        if ["mp4", "mov", "m4v"].contains(target) || id.contains("video") {
+            return NSColor(srgbRed: 0.72, green: 0.50, blue: 1.00, alpha: 1.0) // Violet / Purple
+        }
+        if ["m4a", "wav", "aiff", "mp3"].contains(target) || id.contains("audio") {
+            return NSColor(srgbRed: 1.00, green: 0.45, blue: 0.75, alpha: 1.0) // Pink / Magenta
+        }
+        if ["zip", "tar", "tar.gz"].contains(target) || id.contains("archive") {
+            return NSColor(srgbRed: 1.00, green: 0.68, blue: 0.22, alpha: 1.0) // Amber / Orange
+        }
+        if id.hasPrefix("action.") {
+            return NSColor(srgbRed: 0.40, green: 0.65, blue: 1.00, alpha: 1.0) // System Blue
+        }
+        if id.contains("qr") {
+            return NSColor(srgbRed: 0.98, green: 0.85, blue: 0.28, alpha: 1.0) // Gold
+        }
+        return NSColor(calibratedWhite: 0.92, alpha: 1.0)
     }
 
     private func drawSector(
@@ -201,14 +315,20 @@ public final class RadialWheelView: NSView {
 
         if isActive {
             context.saveGState()
-            // Destaque luminoso azul sutil nativo Apple
-            context.setFillColor(NSColor.controlAccentColor.withAlphaComponent(0.42).cgColor)
+            // Destaque luminoso translúcido elegante
+            context.setFillColor(NSColor.controlAccentColor.withAlphaComponent(0.48).cgColor)
             let path = CGMutablePath()
             path.addArc(center: center, radius: outerRadius - 1.5, startAngle: cgStart, endAngle: cgEnd, clockwise: false)
             path.addArc(center: center, radius: innerRadius + 1.5, startAngle: cgEnd, endAngle: cgStart, clockwise: true)
             path.closeSubpath()
             context.addPath(path)
             context.fillPath()
+
+            // Borda de contorno sutil do setor ativo
+            context.setStrokeColor(NSColor.controlAccentColor.withAlphaComponent(0.95).cgColor)
+            context.setLineWidth(1.6)
+            context.addPath(path)
+            context.strokePath()
             context.restoreGState()
         }
 
@@ -221,10 +341,12 @@ public final class RadialWheelView: NSView {
             radius: midRadius
         )
 
-        // 1. Desenhar Ícone SF Symbol acima do texto
-        let iconSize: CGFloat = (count > 6) ? 14 : 18
+        // 1. Desenhar Ícone SF Symbol com cor categórica correspondente
+        let iconSize: CGFloat = (count > 6) ? 15 : 19
         if let sfImage = NSImage(systemSymbolName: item.iconName, accessibilityDescription: nil) {
-            let config = NSImage.SymbolConfiguration(pointSize: iconSize, weight: isActive ? .bold : .medium)
+            let color = isActive ? NSColor.white : categoryColor(for: item)
+            let config = NSImage.SymbolConfiguration(pointSize: iconSize, weight: isActive ? .bold : .semibold)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [color]))
             if let tinted = sfImage.withSymbolConfiguration(config) {
                 let iconRect = CGRect(
                     x: midPoint.x - iconSize / 2.0,
@@ -238,11 +360,17 @@ public final class RadialWheelView: NSView {
             }
         }
 
-        // 2. Desenhar Título com tamanho dinâmico para não sobrepor
-        let fontSize: CGFloat = (count > 6) ? 10.0 : 11.5
+        // 2. Desenhar Título com tipografia nítida e sombra para legibilidade
+        let fontSize: CGFloat = (count > 6) ? 10.5 : 12.0
+        let textShadow = NSShadow()
+        textShadow.shadowOffset = CGSize(width: 0, height: -1)
+        textShadow.shadowBlurRadius = 2.0
+        textShadow.shadowColor = NSColor.black.withAlphaComponent(0.65)
+
         let titleAttrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: fontSize, weight: isActive ? .bold : .medium),
-            .foregroundColor: isActive ? NSColor.white : NSColor(calibratedWhite: 0.92, alpha: 1.0)
+            .font: NSFont.systemFont(ofSize: fontSize, weight: isActive ? .bold : .semibold),
+            .foregroundColor: isActive ? NSColor.white : NSColor(calibratedWhite: 0.95, alpha: 1.0),
+            .shadow: textShadow
         ]
         let titleStr = item.title as NSString
         let titleSize = titleStr.size(withAttributes: titleAttrs)
