@@ -22,6 +22,10 @@
   Um menu radial ultra-rápido surge sob o cursor com Glassmorphism refinado, zero latência e total privacidade.
 </p>
 
+<p align="center">
+  <img src="assets/orbitdrop-radial-preview.png" alt="OrbitDrop Radial Menu Preview" width="880" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);" />
+</p>
+
 ---
 
 </div>
@@ -39,6 +43,10 @@ Outros conversores cobram assinaturas caras, exigem upload dos seus dados para a
 ---
 
 ## ✨ Três Modos de Ação Direto no Cursor
+
+<p align="center">
+  <img src="assets/how-it-works.png" alt="Como Funciona o OrbitDrop" width="880" style="border-radius: 10px;" />
+</p>
 
 Arraste arquivos ou pastas no Finder e pressione uma tecla para abrir a roda radial correspondente:
 
