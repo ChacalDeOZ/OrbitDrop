@@ -22,10 +22,6 @@
   Um menu radial ultra-rápido surge sob o cursor com Glassmorphism refinado, zero latência e total privacidade.
 </p>
 
-<p align="center">
-  <img src="assets/orbitdrop-radial-preview.png" alt="OrbitDrop Radial Menu Preview" width="880" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);" />
-</p>
-
 ---
 
 </div>
