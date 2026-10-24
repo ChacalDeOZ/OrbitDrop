@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080D1A"/>
+      <stop offset="50%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+
+    <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#00F2FE" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="320" rx="16" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="1.5"/>
+
+  <!-- Step 1 Card -->
+  <g transform="translate(40, 35)" filter="url(#cardShadow)">
+    <rect width="340" height="250" rx="14" fill="url(#cardGrad1)" stroke="#38BDF8" stroke-width="1.2" stroke-opacity="0.5"/>
+    
+    <!-- Step Badge -->
+    <rect x="20" y="20" width="70" height="24" rx="12" fill="#0369A1"/>
+    <text x="55" y="36" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#E0F2FE" text-anchor="middle">PASSO 1</text>
+    
+    <!-- Graphic / Icon -->
+    <circle cx="170" cy="100" r="38" fill="#0C4A6E" stroke="#38BDF8" stroke-width="1.5"/>
+    <text x="170" y="112" font-family="-apple-system, sans-serif" font-size="32" text-anchor="middle">📂</text>
+    
+    <text x="170" y="172" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle">Arraste no Finder</text>
+    <text x="170" y="200" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">Selecione 1 ou milhares de arquivos.</text>
+    <text x="170" y="218" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">Imagens, vídeos, áudios ou documentos.</text>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <g transform="translate(395, 150)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#00F2FE" stroke-width="2.5" stroke-dasharray="3 3"/>
+    <polygon points="20,-6 30,0 20,6" fill="#00F2FE"/>
+  </g>
+
+  <!-- Step 2 Card -->
+  <g transform="translate(430, 35)" filter="url(#cardShadow)">
+    <rect width="340" height="250" rx="14" fill="url(#cardGrad1)" stroke="#818CF8" stroke-width="1.2" stroke-opacity="0.5"/>
+    
+    <!-- Step Badge -->
+    <rect x="20" y="20" width="70" height="24" rx="12" fill="#4338CA"/>
+    <text x="55" y="36" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#EEF2FF" text-anchor="middle">PASSO 2</text>
+    
+    <!-- Graphic / Keys -->
+    <g transform="translate(65, 80)">
+      <rect x="0" y="0" width="60" height="38" rx="8" fill="#1E293B" stroke="#00F2FE" stroke-width="1.5"/>
+      <text x="30" y="24" font-family="-apple-system, monospace" font-size="14" font-weight="700" fill="#00F2FE" text-anchor="middle">⇧</text>
+      
+      <rect x="75" y="0" width="60" height="38" rx="8" fill="#1E293B" stroke="#818CF8" stroke-width="1.5"/>
+      <text x="105" y="24" font-family="-apple-system, monospace" font-size="14" font-weight="700" fill="#A5B4FC" text-anchor="middle">⌘</text>
+      
+      <rect x="150" y="0" width="60" height="38" rx="8" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+      <text x="180" y="24" font-family="-apple-system, monospace" font-size="14" font-weight="700" fill="#F472B6" text-anchor="middle">⌃</text>
+    </g>
+
+    <text x="170" y="172" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle">Aperte a Tecla</text>
+    <text x="170" y="200" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">⇧ Shift = Conversão de Formatos</text>
+    <text x="170" y="218" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">⌘ Cmd = Ferramentas • ⌃ Ctrl = Ações</text>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <g transform="translate(785, 150)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#EC4899" stroke-width="2.5" stroke-dasharray="3 3"/>
+    <polygon points="20,-6 30,0 20,6" fill="#EC4899"/>
+  </g>
+
+  <!-- Step 3 Card -->
+  <g transform="translate(820, 35)" filter="url(#cardShadow)">
+    <rect width="340" height="250" rx="14" fill="url(#cardGrad1)" stroke="#EC4899" stroke-width="1.2" stroke-opacity="0.5"/>
+    
+    <!-- Step Badge -->
+    <rect x="20" y="20" width="70" height="24" rx="12" fill="#BE185D"/>
+    <text x="55" y="36" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FDF2F8" text-anchor="middle">PASSO 3</text>
+    
+    <!-- Graphic / Icon -->
+    <circle cx="170" cy="100" r="38" fill="#831843" stroke="#EC4899" stroke-width="1.5"/>
+    <text x="170" y="112" font-family="-apple-system, sans-serif" font-size="32" text-anchor="middle">⚡</text>
+    
+    <text x="170" y="172" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle">Solte no Setor</text>
+    <text x="170" y="200" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">A roda surge sob o mouse.</text>
+    <text x="170" y="218" font-family="-apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">Solte e o processamento ocorre na hora.</text>
+  </g>
+</svg>
