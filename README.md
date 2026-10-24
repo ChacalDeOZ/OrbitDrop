@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo.png" alt="OrbitDrop Logo" width="140" height="140" style="border-radius: 32px;" />
+
 # 🪐 OrbitDrop
 
 ### O Conversor e Manipulador Nativo de Arquivos Definitivo para macOS.
